@@ -1,5 +1,7 @@
 package io.github.projectet.ae2things.command;
 
+import net.minecraft.server.permissions.Permissions;
+import net.minecraft.core.UUIDUtil;
 import java.util.UUID;
 
 import com.mojang.brigadier.context.CommandContext;
@@ -37,7 +39,7 @@ public class Command {
             .then(Commands.literal("recover")
                     .then(Commands
                             .argument("uuid", UuidArgument.uuid())
-                            .requires(serverCommandSource -> serverCommandSource.hasPermission(2))
+                            .requires(serverCommandSource -> serverCommandSource.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER))
                             .executes(context -> spawnDrive(context, context.getArgument("uuid", UUID.class)))))
             .build();
 
@@ -101,9 +103,9 @@ public class Command {
 
     private static Component copyToClipboard(String string) {
         return Component.literal(string).withStyle(style -> style
-                .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, string))
+                .withClickEvent(new ClickEvent.CopyToClipboard(string))
                 .withHoverEvent(
-                        new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("chat.copy.click")))
+                        new HoverEvent.ShowText(Component.translatable("chat.copy.click")))
                 .withInsertion(string)
                 .withColor(ChatFormatting.GREEN));
     }

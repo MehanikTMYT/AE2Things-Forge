@@ -13,7 +13,7 @@ import io.github.projectet.ae2things.storage.IDISKCellItem;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
@@ -25,7 +25,7 @@ public abstract class CursedInternalSlotMixin {
     public NonNullList<Slot> slots;
 
     @Inject(method = "doClick", at = @At(value = "INVOKE", target = "net/minecraft/world/item/ItemStack.copyWithCount (I)Lnet/minecraft/world/item/ItemStack;"), slice = @Slice(from = @At(value = "INVOKE", target = "net/minecraft/world/inventory/Slot.hasItem()Z", ordinal = 1)), cancellable = true)
-    public void CLONE(int slotIndex, int button, ClickType actionType, Player player, CallbackInfo ci) {
+    public void CLONE(int slotIndex, int button, ContainerInput actionType, Player player, CallbackInfo ci) {
         Slot i = this.slots.get(slotIndex);
 
         var stack = i.getItem();

@@ -15,7 +15,7 @@ import io.github.projectet.ae2things.util.StorageManager;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
@@ -39,7 +39,7 @@ public class AE2Things {
 
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MOD_ID);
 
-    public static final DeferredRegister.DataComponents COMPONENTS = DeferredRegister.createDataComponents(MOD_ID);
+    public static final DeferredRegister.DataComponents COMPONENTS = DeferredRegister.createDataComponents(net.minecraft.core.registries.Registries.DATA_COMPONENT_TYPE, MOD_ID);
 
     public static final DataComponentType<UUID> DATA_DISK_ID = registerDataComponentType("disk_id", builder -> {
         builder.persistent(UUIDUtil.CODEC).networkSynchronized(UUIDUtil.STREAM_CODEC);
@@ -59,8 +59,8 @@ public class AE2Things {
     @Nullable
     private static MinecraftServer storageManagerServer;
 
-    public static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
+    public static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(MOD_ID, path);
     }
 
     public AE2Things(IEventBus modEventBus) {

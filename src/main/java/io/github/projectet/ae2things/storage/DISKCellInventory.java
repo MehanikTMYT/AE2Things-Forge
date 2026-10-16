@@ -1,5 +1,6 @@
 package io.github.projectet.ae2things.storage;
 
+import net.minecraft.nbt.NbtOps;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -178,13 +179,15 @@ public class DISKCellInventory implements StorageCell {
         // add new pretty stuff...
         var amounts = new LongArrayList(storedAmounts.size());
         var keys = new ListTag();
+        // Fleet port (26.1): AEKey's generic NBT helpers moved to ValueInput/Output; the same MAP_CODEC through RegistryOps.
+        var ops = storageManager.getRegistries().createSerializationContext(NbtOps.INSTANCE);
 
         for (var entry : this.storedAmounts.object2LongEntrySet()) {
             long amount = entry.getLongValue();
 
             if (amount > 0) {
                 itemCount += amount;
-                keys.add(entry.getKey().toTagGeneric(storageManager.getRegistries()));
+                AEKey.CODEC.encodeStart(ops, entry.getKey()).result().ifPresent(keys::add);
                 amounts.add(amount);
             }
         }
@@ -292,11 +295,11 @@ public class DISKCellInventory implements StorageCell {
         }
 
         boolean corruptedTag = false;
-        var registries = storageManager.getRegistries();
+        var ops = storageManager.getRegistries().createSerializationContext(NbtOps.INSTANCE);
 
         for (int i = 0; i < amounts.length; i++) {
             var amount = amounts[i];
-            AEKey key = AEKey.fromTagGeneric(registries, tags.getCompound(i));
+            AEKey key = AEKey.CODEC.parse(ops, tags.getCompoundOrEmpty(i)).result().orElse(null);
 
             if (amount <= 0 || key == null) {
                 corruptedTag = true;

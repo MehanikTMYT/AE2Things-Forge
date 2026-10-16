@@ -1,5 +1,8 @@
 package io.github.projectet.ae2things.util;
 
+import net.minecraft.world.level.saveddata.SavedDataType;
+import net.minecraft.resources.Identifier;
+import net.minecraft.core.UUIDUtil;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,7 +18,10 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
 
 public class StorageManager extends SavedData {
-    private static final Factory<StorageManager> FACTORY = new Factory<>(StorageManager::new, StorageManager::readNbt);
+    // Fleet port (26.1): SavedData is registered by SavedDataType (id = file name) with a codec instead of a Factory.
+    private static final SavedDataType<StorageManager> TYPE = new SavedDataType<>(
+            Identifier.fromNamespaceAndPath("ae2things", Constants.MANAGER_NAME), StorageManager::new,
+            CompoundTag.CODEC.xmap(StorageManager::readNbt, StorageManager::save));
     private static final String DISKUUID = "disk_id";
     private final Map<UUID, DataStorage> disks;
     @Nullable
@@ -31,13 +37,13 @@ public class StorageManager extends SavedData {
         this.setDirty();
     }
 
-    @Override
-    public CompoundTag save(CompoundTag nbt, HolderLookup.Provider registries) {
+    private CompoundTag save() {
+        CompoundTag nbt = new CompoundTag();
         ListTag diskList = new ListTag();
         for (Map.Entry<UUID, DataStorage> entry : disks.entrySet()) {
             CompoundTag disk = new CompoundTag();
 
-            disk.putUUID(DISKUUID, entry.getKey());
+            disk.store(DISKUUID, UUIDUtil.CODEC, entry.getKey());
             disk.put(Constants.DISKDATA, entry.getValue().toNbt());
             diskList.add(disk);
         }
@@ -46,12 +52,12 @@ public class StorageManager extends SavedData {
         return nbt;
     }
 
-    public static StorageManager readNbt(CompoundTag nbt, HolderLookup.Provider registries) {
+    public static StorageManager readNbt(CompoundTag nbt) {
         Map<UUID, DataStorage> disks = new HashMap<>();
-        ListTag diskList = nbt.getList(Constants.DISKLIST, CompoundTag.TAG_COMPOUND);
+        ListTag diskList = nbt.getListOrEmpty(Constants.DISKLIST);
         for (int i = 0; i < diskList.size(); i++) {
-            CompoundTag disk = diskList.getCompound(i);
-            disks.put(disk.getUUID(DISKUUID), DataStorage.fromNbt(disk.getCompound(Constants.DISKDATA)));
+            CompoundTag disk = diskList.getCompoundOrEmpty(i);
+            disks.put(disk.read(DISKUUID, UUIDUtil.CODEC).orElseThrow(), DataStorage.fromNbt(disk.getCompoundOrEmpty(Constants.DISKDATA)));
         }
         return new StorageManager(disks);
     }
@@ -90,7 +96,7 @@ public class StorageManager extends SavedData {
 
     public static StorageManager getInstance(MinecraftServer server) {
         ServerLevel world = server.getLevel(ServerLevel.OVERWORLD);
-        var manager = world.getDataStorage().computeIfAbsent(FACTORY, Constants.MANAGER_NAME);
+        var manager = world.getDataStorage().computeIfAbsent(TYPE);
         manager.registries = new WeakReference<>(server.registryAccess());
         return manager;
     }

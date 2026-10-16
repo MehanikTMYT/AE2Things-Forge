@@ -12,18 +12,17 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 
-@EventBusSubscriber(modid = AE2Things.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = AE2Things.MOD_ID)
 public class AE2ThingsDataGenerator {
     @SubscribeEvent
-    public static void onGatherData(GatherDataEvent event) {
+    public static void onGatherData(GatherDataEvent.Client event) {
         var generator = event.getGenerator();
         var registries = event.getLookupProvider();
 
         var pack = generator.getVanillaPack(true);
-        var existingFileHelper = event.getExistingFileHelper();
 
         // Recipes
-        pack.addProvider(bindRegistries(CraftingRecipeProvider::new, registries));
+        pack.addProvider(bindRegistries(CraftingRecipeProvider.Runner::new, registries));
     }
 
     private static <T extends DataProvider> DataProvider.Factory<T> bindRegistries(

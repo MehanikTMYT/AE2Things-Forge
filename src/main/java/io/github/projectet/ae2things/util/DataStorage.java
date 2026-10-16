@@ -39,9 +39,9 @@ public class DataStorage {
     }
 
     public static DataStorage fromNbt(CompoundTag nbt) {
-        ListTag stackKeys = nbt.getList(STACK_KEYS, Tag.TAG_COMPOUND);
-        long[] stackAmounts = nbt.getLongArray(STACK_AMOUNTS);
-        long itemCount = nbt.getLong(ITEM_COUNT_TAG);
+        ListTag stackKeys = nbt.getListOrEmpty(STACK_KEYS);
+        long[] stackAmounts = nbt.getLongArray(STACK_AMOUNTS).orElse(new long[0]);
+        long itemCount = nbt.getLongOr(ITEM_COUNT_TAG, 0L);
 
         return new DataStorage(stackKeys, stackAmounts, itemCount);
     }
